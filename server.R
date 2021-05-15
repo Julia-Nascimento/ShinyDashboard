@@ -1,8 +1,16 @@
 library(shiny)
 library(shinyjs)
+library(DT)
 
 
 shinyServer(function(input, output) {
+  
+  onclick('primeiroClick',showModal(modalDialog(
+    title = "Ola mundo!! Tudo bem?",
+    easyClose = TRUE,
+    size = "l"
+  )))
+  
   
   output$vbox1 <- renderValueBox({
     Regiao=input$SelectRegião
@@ -179,7 +187,7 @@ shinyServer(function(input, output) {
     })
     
     
-    output$TabelaCovid <- renderDataTable({
+    output$TabelaCovid <- DT::renderDataTable({
       
       if(input$Select1=="todos"){
         informacoesUltimoDiaEstados2<-informacoesUltimoDiaEstados
@@ -187,28 +195,27 @@ shinyServer(function(input, output) {
         informacoesUltimoDiaEstados2<- informacoesUltimoDiaEstados %>%  filter(regiao == input$Select1)
 
       }
+      
+      datatable(data = informacoesUltimoDiaEstados2,
+                filter = "top",
+      rownames = FALSE,
+      extensions = c('Responsive', 'Buttons'),
+      options = list(
+        pageLength = 12,
+        orientation ='landscape',
+        lengthMenu = list(
+          c(6, 12, 18, -1),
+          c('6', '12', '18', 'All')),
+        dom = 'Bfrtip',
+        buttons =
+          list('pageLength', 'colvis', list(
+            extend = 'pdf',
+            pageSize = 'A4',
+            orientation = 'landscape',
+            filename = 'tt'),list(
+              extend = 'excel')
 
-      informacoesUltimoDiaEstados2
-      # datatable(data = covidBrasil,
-      #           filter = "top",
-                # rownames = FALSE,
-                # extensions = c('Responsive', 'Buttons'),
-                # options = list(
-                #   pageLength = 12,
-                #   orientation ='landscape',
-                #   lengthMenu = list(
-                #     c(6, 12, 18, -1),
-                #     c('6', '12', '18', 'All')),
-                #   dom = 'Bfrtip',
-                #   buttons = 
-                #     list('pageLength', 'colvis', list(
-                #       extend = 'pdf',
-                #       pageSize = 'A4',
-                #       orientation = 'landscape',
-                #       filename = 'tt'),list(
-                #         extend = 'excel')
-                #       
-                #     )))
+          )))
       
       
       
@@ -219,6 +226,45 @@ shinyServer(function(input, output) {
     
     
     
+    
+    
+    
+    
+    
+    
+    
+    output$TabelaInterativaCovid <- DT::renderDataTable({
+      datatable(informacoesUltimoDiaEstados,extensions = c('Responsive'),
+                options = list(responsive=TRUE)
+                )
+    })
+    
+    tbl_reactive_TabelaInterativaCovid <- reactive({
+      
+      linhaSelecionada<-input$TabelaInterativaCovid_rows_selected[1]
+      estadoSelecioando<- informacoesUltimoDiaEstados$estado[linhaSelecionada]
+      
+      baseComOEstadoSelecionado<-informacoesUltimoDia %>%  filter( estado == estadoSelecioando)
+      baseComOEstadoSelecionado <- baseComOEstadoSelecionado %>% select(estado, municipio,populacaoTCU2019,casosAcumulado )
+      datatable(baseComOEstadoSelecionado)
+      
+    })
+    
+    output$modal_table_TabelaInterativaCovid <- DT::renderDataTable({
+      tbl_reactive_TabelaInterativaCovid()
+    })
+    
+    myModal_TabelaInterativaCovid <- function(failed=FALSE){
+      modalDialog(
+        DT::dataTableOutput('modal_table_TabelaInterativaCovid'),
+        easyClose = TRUE,
+        size = "l"
+      )
+    }
+    
+    observeEvent(input$TabelaInterativaCovid_rows_selected,{
+      showModal(myModal_TabelaInterativaCovid())
+    })
     
     
     

@@ -1,6 +1,6 @@
 library(shiny)
 library(shinydashboard)
-
+library(DT)
 library(shinyjs)
 
 # 
@@ -10,9 +10,12 @@ library(shinyjs)
 #     dashboardBody()
 # )
 
-dashboardPage(
-    dashboardHeader(title = "Meu Dash"),
-    dashboardSidebar(
+tagList(
+    useShinyjs(),
+    dashboardPage(
+        
+        dashboardHeader(title = "Meu Dash"),
+        dashboardSidebar(
         sidebarMenu(
             menuItem("Aba 1", tabName = "aba1", icon = icon("star")),
             menuItem("Aba 2", tabName = "aba2", icon = icon("tag")),
@@ -22,6 +25,9 @@ dashboardPage(
             )
         ),
     dashboardBody(
+        # includeCSS("www/style.css"),#para incluir as mudanças das cores do dash
+        #includeCSS("www/estilo2.css"),
+        
         tabItems(
             tabItem(tabName = "aba1", 
                     fluidRow(
@@ -144,14 +150,25 @@ dashboardPage(
                                            "Sudeste","Sudeste" ,
                                            "Sul"="Sul")),
                              
-                             dataTableOutput("TabelaCovid")
+                                     DT::dataTableOutput("TabelaCovid")
                     ),
-                    tabPanel("Tabelas interativas", value = "tab2",
+                    tabPanel("Caixas interativas", value = "tab2",
+                             
+                             div(id='primeiroClick',
+                                 valueBox( width = 4,
+                                     "Clique aqui",
+                                     "Eu disse pra clicar..."
+                                 )
+                                 ),
+                             
+                             box(width = 12,
+                                 DT::dataTableOutput("TabelaInterativaCovid"),
+                                 actionButton("TabelaInterativaCovid_rows_selected", "Show")
+                             )
                              
                              
-                             #,
                              
-                             # DTOutput("DT5")
+                           
                     ))
                         
                         
@@ -162,5 +179,5 @@ dashboardPage(
                 
             )
         )
-    
+    )
     )
